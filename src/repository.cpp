@@ -130,18 +130,18 @@ void repository::detach_head() const {
     throw git_exception();
 }
 
-std::string repository::discover_path(const std::string &start_path,
+git_result<std::string> repository::discover_path(const std::string &start_path,
                                       bool across_fs,
                                       const std::string &ceiling_dirs) {
   // TODO: Update this hardcoded size
   data_buffer buffer;
   if (git_repository_discover(buffer.c_ptr(), start_path.c_str(), across_fs,
                               ceiling_dirs.c_str()))
-    throw git_exception();
+      return git_result<std::string>{};
   return buffer.to_string();
 }
 
-std::string repository::discover_path(const std::string &start_path) {
+git_result<std::string> repository::discover_path(const std::string &start_path) {
   return discover_path(start_path, false, "");
 }
 
@@ -850,7 +850,7 @@ commit repository::lookup_commit(const oid &id, size_t length) const {
   return result;
 }
 
-void repository::for_each_commit(std::function<void(const commit &id)> visitor,
+void repository::for_each_commit(std::function<void(commit &&id)> visitor,
                                  revision::sort sort_ordering) const {
   git_revwalk *iter;
   auto ret = git_revwalk_new(&iter, c_ptr_);
@@ -870,7 +870,27 @@ void repository::for_each_commit(std::function<void(const commit &id)> visitor,
   git_revwalk_free(iter);
 }
 
-void repository::for_each_commit(std::function<void(const commit &id)> visitor,
+void repository::for_each_commit_oid(std::function<void(oid &&id)> visitor,
+                                     revision::sort sort_ordering) const {
+  git_revwalk *iter;
+  auto ret = git_revwalk_new(&iter, c_ptr_);
+  git_revwalk_push_head(iter);
+
+  if (ret != 0) {
+    git_revwalk_free(iter);
+    throw git_exception();
+  }
+
+  git_revwalk_sorting(iter, static_cast<unsigned int>(sort_ordering));
+  git_oid id_c;
+  while ((ret = git_revwalk_next(&id_c, iter)) == 0) {
+    oid id(&id_c);
+    visitor(std::move(id));
+  }
+  git_revwalk_free(iter);
+}
+
+void repository::for_each_commit(std::function<void(commit &&id)> visitor,
                                  const commit &start_from,
                                  revision::sort sort_ordering) const {
   git_revwalk *iter;

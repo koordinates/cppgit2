@@ -9,6 +9,7 @@
 #include <cppgit2/strarray.hpp>
 #include <functional>
 #include <git2.h>
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -656,7 +657,7 @@ public:
   // files will only be calculated if they are not NULL. Of course, these
   // callbacks will not be invoked for binary files on the diff or for files
   // whose only changed is a file mode change.
-  void for_each(std::function<void(const diff::delta &, float)> file_callback,
+  std::optional<const git_error*> for_each(std::function<void(const diff::delta &, float)> file_callback,
                 std::function<void(const diff::delta &, const diff::binary &)>
                     binary_callback = {},
                 std::function<void(const diff::delta &, const diff::hunk &)>

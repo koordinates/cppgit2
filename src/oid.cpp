@@ -16,14 +16,7 @@ oid::oid(const std::string &hex_string, size_t length) {
 }
 
 oid::oid(const git_oid *c_ptr) {
-  // Convert git_oid * to string and construct this oid
-  size_t n = GIT_OID_HEXSZ;
-  std::string buffer(n, '0');
-  if (!git_oid_tostr(const_cast<char *>(buffer.c_str()), n + 1, c_ptr))
-    throw git_exception();
-  // Construct from string
-  if (git_oid_fromstr(&c_struct_, buffer.c_str()))
-    throw git_exception();
+  git_oid_cpy(&c_struct_, c_ptr);
 }
 
 oid::oid(const unsigned char *raw) { git_oid_fromraw(&c_struct_, raw); }

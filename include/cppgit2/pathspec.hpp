@@ -47,6 +47,10 @@ public:
       if (c_ptr_ && owner_ == ownership::user)
         git_pathspec_match_list_free(c_ptr_);
     }
+    
+    match_list(match_list&& other) : c_ptr_(other.c_ptr_), owner_(other.owner_) {
+      other.c_ptr_ = nullptr;
+    }
 
     // Get a matching diff delta by position.
     diff::delta diff_entry(size_t pos) const {
@@ -95,7 +99,10 @@ public:
   match_list match_index(const index &index, flag flags);
 
   // Match a pathspec against files in a tree.
-  match_list match_tree(const tree &tree, flag flags);
+  git_result<pathspec::match_list> match_tree(const tree &tree, flag flags);
+  
+  // Match a pathspec against files in a tree, doesn't allocate a result.
+  int match_tree_no_result(const tree &tree, flag flags);
 
   // Match a pathspec against the working directory of a repository.
   match_list match_workdir(const class repository &repo, flag flags);

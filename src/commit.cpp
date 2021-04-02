@@ -2,22 +2,33 @@
 
 namespace cppgit2 {
 
-commit::commit() : c_ptr_(nullptr), owner_(ownership::libgit2) {}
+commit::commit() : c_ptr_(nullptr), owner_(ownership::libgit2) 
+{
+  //printf("Default Constructing commit\n");
+}
 
 commit::commit(git_commit *c_ptr, ownership owner)
-    : c_ptr_(c_ptr), owner_(owner) {}
+    : c_ptr_(c_ptr), owner_(owner) 
+{
+  //printf("Constructing commit from c_ptr\n");
+}
 
 commit::~commit() {
   if (c_ptr_ && owner_ == ownership::user)
+  {
+    //printf("Destructing commit\n");
     git_commit_free(c_ptr_);
+  }
 }
 
 commit::commit(commit&& other) : c_ptr_(other.c_ptr_), owner_(other.owner_) {
+  //printf("Move Constructing commit\n");
   other.c_ptr_ = nullptr;
 }
 
 commit& commit::operator=(commit&& other) {
   if (other.c_ptr_ != c_ptr_) {
+    //printf("Move Assigning commit\n");
     c_ptr_ = other.c_ptr_;
     owner_ = other.owner_;
     other.c_ptr_ = nullptr;
@@ -37,7 +48,7 @@ void commit::amend(const oid &id, const std::string &update_ref,
 
 signature commit::author() const {
   auto ret = git_commit_author(c_ptr_);
-  return signature(ret->name, ret->email, ret->when.time, ret->when.offset);
+  return signature(ret);
 }
 
 std::string commit::body() const {

@@ -33,42 +33,42 @@ pathspec pathspec::compile(const strarray &paths) {
 
 pathspec::match_list pathspec::match_diff(const diff &diff,
                                           pathspec::flag flags) {
-  git_pathspec_match_list **result_c =
-      (git_pathspec_match_list **)malloc(sizeof(git_pathspec_match_list *));
-  if (git_pathspec_match_diff(result_c, diff.c_ptr_,
+  git_pathspec_match_list *result_c = nullptr;
+  if (git_pathspec_match_diff(&result_c, diff.c_ptr_,
                               static_cast<uint32_t>(flags), c_ptr_))
     throw git_exception();
-  return pathspec::match_list(*result_c);
+  return pathspec::match_list(result_c);
 }
 
 pathspec::match_list pathspec::match_index(const index &index,
                                            pathspec::flag flags) {
-  git_pathspec_match_list **result_c =
-      (git_pathspec_match_list **)malloc(sizeof(git_pathspec_match_list *));
-  if (git_pathspec_match_index(result_c, index.c_ptr_,
+  git_pathspec_match_list *result_c = nullptr;
+  if (git_pathspec_match_index(&result_c, index.c_ptr_,
                                static_cast<uint32_t>(flags), c_ptr_))
     throw git_exception();
-  return pathspec::match_list(*result_c);
+  return pathspec::match_list(result_c);
 }
 
-pathspec::match_list pathspec::match_tree(const tree &tree,
+int pathspec::match_tree_no_result(const tree &tree, pathspec::flag flags) {
+    return git_pathspec_match_tree(nullptr, tree.c_ptr_, static_cast<uint32_t>(flags), c_ptr_);
+}
+
+git_result<pathspec::match_list> pathspec::match_tree(const tree &tree,
                                           pathspec::flag flags) {
-  git_pathspec_match_list **result_c =
-      (git_pathspec_match_list **)malloc(sizeof(git_pathspec_match_list *));
-  if (git_pathspec_match_tree(result_c, tree.c_ptr_,
+  git_pathspec_match_list *result_c = nullptr;
+  if (git_pathspec_match_tree(&result_c, tree.c_ptr_,
                               static_cast<uint32_t>(flags), c_ptr_))
-    throw git_exception();
-  return pathspec::match_list(*result_c);
+    return git_result<pathspec::match_list>();
+  return pathspec::match_list(result_c);
 }
 
 pathspec::match_list pathspec::match_workdir(const repository &repo,
                                              pathspec::flag flags) {
-  git_pathspec_match_list **result_c =
-      (git_pathspec_match_list **)malloc(sizeof(git_pathspec_match_list *));
-  if (git_pathspec_match_workdir(result_c, repo.c_ptr_,
+  git_pathspec_match_list *result_c = nullptr;
+  if (git_pathspec_match_workdir(&result_c, repo.c_ptr_,
                                  static_cast<uint32_t>(flags), c_ptr_))
     throw git_exception();
-  return pathspec::match_list(*result_c);
+  return pathspec::match_list(result_c);
 }
 
 bool pathspec::matches_path(pathspec::flag flags,

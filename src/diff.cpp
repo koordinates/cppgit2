@@ -112,7 +112,7 @@ data_buffer diff::format_email(const format_email_options &options) {
   return result;
 }
 
-void diff::for_each(
+std::optional<const git_error*> diff::for_each(
     std::function<void(const diff::delta &, float)> file_callback,
     std::function<void(const diff::delta &, const diff::binary &)>
         binary_callback,
@@ -172,7 +172,9 @@ void diff::for_each(
 
   if (git_diff_foreach(c_ptr_, file_callback_c, binary_callback_c,
                        hunk_callback_c, line_callback_c, (void *)(&wrapper)))
-    throw git_exception();
+    return git_error_last();
+
+  return std::nullopt;
 }
 
 void diff::print(diff::format format,

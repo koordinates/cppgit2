@@ -3,7 +3,45 @@
 #include <git2.h>
 #include <string>
 
+#include <variant>
+
 namespace cppgit2 {
+
+template <typename tResult>
+class git_result
+{
+public:
+    git_result(tResult&& aResult)
+    {
+        mData.emplace<tResult>(std::move(aResult));
+    }
+    
+    git_result()
+    {
+        mData = git_error_last();
+    }
+
+    bool HasResult()
+    {
+        if (mData.index() == 1) //error
+            return false;
+        else
+            return true;
+    }
+
+    tResult& Result()
+    {
+        return std::get<tResult>(mData);
+    }
+
+    tResult&& Move()
+    {
+        return std::get<tResult>(std::move(mData));
+    }
+
+private:
+    std::variant<tResult, const git_error*> mData;
+};
 
 class git_exception : public std::exception {
 public:

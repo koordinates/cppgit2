@@ -262,11 +262,11 @@ public:
   // ceiling_dirs: A GIT_PATH_LIST_SEPARATOR separated list of absolute
   // symbolic link free paths. The lookup will stop when any of this paths
   // is reached.
-  static std::string discover_path(const std::string &start_path,
+  static git_result<std::string> discover_path(const std::string &start_path,
                                    bool across_fs,
                                    const std::string &ceiling_dirs);
 
-  static std::string discover_path(const std::string &start_path);
+  static git_result<std::string> discover_path(const std::string &start_path);
 
   // Invoke 'visitor' for each entry in the given FETCH_HEAD file.
   // See git_repository_fetchhead_foreach_cb
@@ -713,11 +713,15 @@ public:
   // visitor function
 
   // Run operation for each commit in the repository
-  void for_each_commit(std::function<void(const commit &id)> visitor,
+  void for_each_commit(std::function<void(commit &&id)> visitor,
                        revision::sort sort_ordering = revision::sort::none) const;
+  
+  // Run operation for each commit in the repository
+  void for_each_commit_oid(std::function<void(oid &&id)> visitor,
+                           revision::sort sort_ordering = revision::sort::none) const;
 
   // Run operation for each commit in the repository
-  void for_each_commit(std::function<void(const commit &id)> visitor,
+  void for_each_commit(std::function<void(commit &&id)> visitor,
                        const commit &start_from,
                        revision::sort sort_ordering = revision::sort::none) const;
 
